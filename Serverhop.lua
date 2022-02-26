@@ -61,4 +61,8 @@ function functeleport:Teleport()
     end
 end
 
+function functeleport:Rejoin() 
+    game:GetService("TeleportService"):Teleport(game.PlaceId, game:GetService("Players").LocalPlayer)
+end
+
 return functeleport
