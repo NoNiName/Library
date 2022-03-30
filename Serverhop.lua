@@ -4,8 +4,8 @@ local PlaceID = game.PlaceId
 local AllIDs = {}
 local foundAnything = ""
 local actualHour = os.date("!*t").hour
-local Deleted = false
-function TPReturner()
+
+function ServerNomal()
     local Site;
     if foundAnything == "" then
         Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
@@ -29,7 +29,6 @@ function TPReturner()
                 else
                     if tonumber(actualHour) ~= tonumber(Existing) then
                         local delFile = pcall(function()
-                            -- delfile("NotSameServers.json")
                             AllIDs = {}
                             table.insert(AllIDs, actualHour)
                         end)
@@ -41,8 +40,6 @@ function TPReturner()
                 table.insert(AllIDs, ID)
                 wait()
                 pcall(function()
-                    -- writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
-                    wait()
                     game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
                 end)
                 wait(1)
@@ -51,7 +48,7 @@ function TPReturner()
     end
 end
 
-function TPReturnerLess()
+function ServerLess()
     local Site;
     if foundAnything == "" then
         Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
@@ -75,7 +72,6 @@ function TPReturnerLess()
                 else
                     if tonumber(actualHour) ~= tonumber(Existing) then
                         local delFile = pcall(function()
-                            -- delfile("NotSameServers.json")
                             AllIDs = {}
                             table.insert(AllIDs, actualHour)
                         end)
@@ -87,8 +83,6 @@ function TPReturnerLess()
                 table.insert(AllIDs, ID)
                 wait()
                 pcall(function()
-                    -- writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
-                    wait()
                     game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
                 end)
                 wait(1)
@@ -100,9 +94,9 @@ end
 function functeleport:Teleport() 
     while wait() do
         pcall(function()
-            TPReturner()
+            ServerNomal()
             if foundAnything ~= "" then
-                TPReturner()
+                ServerNomal()
             end
         end)
     end
@@ -111,9 +105,9 @@ end
 function functeleport:TeleportLess() 
     while wait() do
         pcall(function()
-            TPReturnerLess()
+            ServerLess()
             if foundAnything ~= "" then
-                TPReturnerLess()
+                ServerLess()
             end
         end)
     end
