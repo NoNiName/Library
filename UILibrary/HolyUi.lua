@@ -807,8 +807,7 @@ function finity.new(isdark, gprojectName, thinProject)
 							ImageTransparency = 0.5,
 							ScaleType = Enum.ScaleType.Slice,
 							SliceCenter = Rect.new(100, 100, 100, 100),
-							SliceScale = 0.02,
-                            ClipsDescendants = true
+							SliceScale = 0.02
 						})
 
 						cheat.selected = finity:Create("TextLabel", {
@@ -823,6 +822,7 @@ function finity.new(isdark, gprojectName, thinProject)
 							TextColor3 = theme.dropdown_text,
 							TextSize = 13,
 							TextXAlignment = Enum.TextXAlignment.Left,
+                            text.
 						})
 
 						cheat.list = finity:Create("ScrollingFrame", {
@@ -994,6 +994,7 @@ function finity.new(isdark, gprojectName, thinProject)
 
 						cheat.selected.Parent = cheat.dropdown
 						cheat.dropdown.Parent = cheat.container
+                        cheat.dropdown.ClipsDescendants = true
 						cheat.list.Parent = cheat.container
 					elseif string.lower(kind) == "textbox" then
 						local placeholdertext = data and data.placeholder
