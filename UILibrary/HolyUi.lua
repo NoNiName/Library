@@ -142,7 +142,7 @@ function finity.new(isdark, gprojectName, thinProject)
 	local self2 = finityObject
 	local self = finity
 
-	if not finity.gs["RunService"]:IsStudio() and self.gs["CoreGui"]:FindFirstChild("FinityUI") then
+	if not finity.gs["RunService"]:IsStudio() and self.gs["Players"].LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("FinityUI") then
 		warn("finity:", "instance already exists in coregui!")
 
 		return
@@ -1415,7 +1415,7 @@ function finity.new(isdark, gprojectName, thinProject)
 	self2.categories.ClipsDescendants = true
 
 	if not finity.gs["RunService"]:IsStudio() then
-		self2.userinterface.Parent = self.gs["CoreGui"]
+		self2.userinterface.Parent = self.gs["Players"].LocalPlayer:WaitForChild("PlayerGui")
 	else
 		self2.userinterface.Parent = self.gs["Players"].LocalPlayer:WaitForChild("PlayerGui")
 	end
