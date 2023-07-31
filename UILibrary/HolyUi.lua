@@ -120,23 +120,6 @@ function finity:Create(class, properties)
 	return object
 end
 
-function finity:resize(obj)
-    local textGUI = obj.Text
-    local ogPos = textGUI.Position
-
-    local endPos = Udim2.new(-1,0,0,0)
-    local dur = 5
-
-    function tweenText()
-        textGUI:TweenPosition(endPos, Enum.EasingDirection.Out, Enum.EasingStyle.Linear, dur) -- tween the gui across the screen
-        task.wait(dur) -- wait the duration
-        textGUI.Position = ogPos -- Set back position
-        tweenText() -- Restart
-    end
-
-    tweenText()
-end
-
 function finity:addShadow(object, transparency)
 	local shadow = self:Create("ImageLabel", {
 		Name = "Shadow",
@@ -869,8 +852,6 @@ function finity.new(isdark, gprojectName, thinProject)
 						})
 						uipadding.Parent = cheat.list
 						uipadding = nil
-
-                        finity:resize(cheat.selected)
 
 						local function refreshOptions()
 							if cheat.dropped then
