@@ -115,7 +115,6 @@ function finity:Create(class, properties)
 	for prop, val in next, properties do
 		if object[prop] and prop ~= "Parent" then
 			object[prop] = val
-            if prop == "Label"
 		end
 	end
 
