@@ -109,15 +109,23 @@ setmetatable(finity.gs, {
 
 local mouse = finity.gs["Players"].LocalPlayer:GetMouse()
 
+function resize(obj)
+    local size = game.TextService:GetTextSize(obj.Text, obj.TextSize, obj.Font,  obj.AbsoluteSize)
+    obj.Size = UDim2.new(obj.Size.X.Scale,  obj.Size.X.Offset, 0, size.Y)    
+end
+
 function finity:Create(class, properties)
 	local object = Instance.new(class)
 
 	for prop, val in next, properties do
 		if object[prop] and prop ~= "Parent" then
 			object[prop] = val
+            if object == "TextLabel" then
+                object:GetPropertyChangedSignal("Text"):Connect(resize) 
+            end
 		end
 	end
-
+    
 	return object
 end
 
@@ -823,7 +831,7 @@ function finity.new(isdark, gprojectName, thinProject)
 							TextColor3 = theme.dropdown_text,
 							TextSize = 13,
 							TextXAlignment = Enum.TextXAlignment.Left,
-                            ClipsDescendants = true
+                            TextWrapped = true
 						})
 
 						cheat.list = finity:Create("ScrollingFrame", {
