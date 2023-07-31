@@ -822,7 +822,6 @@ function finity.new(isdark, gprojectName, thinProject)
 							TextColor3 = theme.dropdown_text,
 							TextSize = 13,
 							TextXAlignment = Enum.TextXAlignment.Left,
-                            text.
 						})
 
 						cheat.list = finity:Create("ScrollingFrame", {
