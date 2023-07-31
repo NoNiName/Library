@@ -1028,10 +1028,10 @@ function finity.new(isdark, gprojectName, thinProject)
 							PlaceholderText = placeholdertext or "Value",
 							TextSize = 13,
 							TextXAlignment = Enum.TextXAlignment.Center,
-							ClearTextOnFocus = false,
-                            ClipsDescendants = true
+							ClearTextOnFocus = false
 						})
-
+                        
+                        cheat.textbox.ClipsDescendants = true
 						cheat.background.MouseEnter:Connect(function()
 							finity.gs["TweenService"]:Create(cheat.textbox, TweenInfo.new(0.1), {TextColor3 = theme.textbox_text_hover}):Play()
 						end)
