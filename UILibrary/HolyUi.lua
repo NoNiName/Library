@@ -1030,7 +1030,7 @@ function finity.new(isdark, gprojectName, thinProject)
 							TextXAlignment = Enum.TextXAlignment.Center,
 							ClearTextOnFocus = false
 						})
-                        
+
                         cheat.textbox.ClipsDescendants = true
 						cheat.background.MouseEnter:Connect(function()
 							finity.gs["TweenService"]:Create(cheat.textbox, TweenInfo.new(0.1), {TextColor3 = theme.textbox_text_hover}):Play()
@@ -1203,8 +1203,8 @@ function finity.new(isdark, gprojectName, thinProject)
 							Name = "Background",
 							BackgroundColor3 = Color3.new(1, 1, 1),
 							BackgroundTransparency = 1,
-							Position = UDim2.new(0.1, 0, 0, 0),
-							Size = UDim2.new(0.9, 0, 1, 0),
+							Position = UDim2.new(0.5, 0, 0, 0),
+							Size = UDim2.new(0.5, 0, 1, 0),
 							ZIndex = 2,
 							Image = "rbxassetid://6644617491",
 							ImageColor3 = theme.button_background,
