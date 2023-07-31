@@ -106,13 +106,7 @@ setmetatable(finity.gs, {
 	end
 })
 
-
 local mouse = finity.gs["Players"].LocalPlayer:GetMouse()
-
-function resize(obj)
-    local size = game.TextService:GetTextSize(obj.Text, obj.TextSize, obj.Font,  obj.AbsoluteSize)
-    obj.Size = UDim2.new(obj.Size.X.Scale,  obj.Size.X.Offset, 0, size.Y)    
-end
 
 function finity:Create(class, properties)
 	local object = Instance.new(class)
@@ -120,13 +114,27 @@ function finity:Create(class, properties)
 	for prop, val in next, properties do
 		if object[prop] and prop ~= "Parent" then
 			object[prop] = val
-            if object == "TextLabel" then
-                object:GetPropertyChangedSignal("Text"):Connect(resize) 
-            end
 		end
 	end
     
 	return object
+end
+
+function finity:resize(obj)
+    local textGUI = obj.Text
+    local ogPos = textGUI.Position
+
+    local endPos = Udim2.new(-1,0,0,0)
+    local dur = 5
+
+    function tweenText()
+        textGUI:TweenPosition(endPos, Enum.EasingDirection.Out, Enum.EasingStyle.Linear, dur) -- tween the gui across the screen
+        task.wait(dur) -- wait the duration
+        textGUI.Position = ogPos -- Set back position
+        tweenText() -- Restart
+    end
+
+    tweenText()
 end
 
 function finity:addShadow(object, transparency)
@@ -816,7 +824,8 @@ function finity.new(isdark, gprojectName, thinProject)
 							ImageTransparency = 0.5,
 							ScaleType = Enum.ScaleType.Slice,
 							SliceCenter = Rect.new(100, 100, 100, 100),
-							SliceScale = 0.02
+							SliceScale = 0.02,
+                            ClipsDescendants = true
 						})
 
 						cheat.selected = finity:Create("TextLabel", {
@@ -831,7 +840,6 @@ function finity.new(isdark, gprojectName, thinProject)
 							TextColor3 = theme.dropdown_text,
 							TextSize = 13,
 							TextXAlignment = Enum.TextXAlignment.Left,
-                            TextWrapped = true
 						})
 
 						cheat.list = finity:Create("ScrollingFrame", {
@@ -861,6 +869,8 @@ function finity.new(isdark, gprojectName, thinProject)
 						})
 						uipadding.Parent = cheat.list
 						uipadding = nil
+
+                        finity:resize(cheat.selected)
 
 						local function refreshOptions()
 							if cheat.dropped then
