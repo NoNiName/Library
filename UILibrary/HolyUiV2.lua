@@ -3635,8 +3635,6 @@ function Library:CreateWindow(HubName, GameName, IntroText, IntroIcon, ImprovePe
                         Callback(Default)
                         
                         Config[Name] = Item
-
-                        Opened = false
                     end)
                 end
 
@@ -3810,8 +3808,6 @@ function Library:CreateWindow(HubName, GameName, IntroText, IntroIcon, ImprovePe
                             Callback(Default)
                             
                             Config[Name] = Item
-    
-                            Opened = false
                         end)
                     end
                 end
