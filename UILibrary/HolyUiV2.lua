@@ -14,7 +14,17 @@ local LocalPlayer = game:GetService("Players").LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local HttpService = game:GetService("HttpService")
 
-local OrionLib = {
+-- // Variables
+getgenv().kms = false
+local Ihatethisui = {}
+local UIName = 'Visual UI Library | .gg/puxxCphTnK'
+local Amount = 0
+local ConfigF
+local BreakAllLoops = false
+local ChangeTheme = false
+local NotificationTransparency = 0
+local Utility = {}
+local Library = {
     Elements = {},
     ThemeObjects = {},
     Connections = {},
@@ -33,18 +43,6 @@ local OrionLib = {
     Folder = nil,
     SaveCfg = false
 }
-
--- // Variables
-getgenv().kms = false
-local Ihatethisui = {}
-local UIName = 'Visual UI Library | .gg/puxxCphTnK'
-local Amount = 0
-local ConfigF
-local BreakAllLoops = false
-local ChangeTheme = false
-local NotificationTransparency = 0
-local Utility = {Elements= {},}
-local Library = {}
 local Config = {}
 local ConfigUpdates = {}
 local Themes = {
@@ -1000,7 +998,7 @@ do
         end
     end
 
-    function OrionLib:IsRunning()
+    function Library:IsRunning()
         if gethui then
             return Orion.Parent == gethui()
         else
@@ -1010,20 +1008,20 @@ do
     end
 
     local function AddConnection(Signal, Function)
-        if (not OrionLib:IsRunning()) then
+        if (not Library:IsRunning()) then
             return
         end
         local SignalConnect = Signal:Connect(Function)
-        table.insert(OrionLib.Connections, SignalConnect)
+        table.insert(Library.Connections, SignalConnect)
         return SignalConnect
     end
 
     task.spawn(function()
-        while (OrionLib:IsRunning()) do
+        while (Library:IsRunning()) do
             wait()
         end
 
-        for _, Connection in next, OrionLib.Connections do
+        for _, Connection in next, Library.Connections do
             Connection:Disconnect()
         end
     end)
@@ -1040,13 +1038,13 @@ do
     end
 
     local function CreateElement(ElementName, ElementFunction)
-        OrionLib.Elements[ElementName] = function(...)
+        Library.Elements[ElementName] = function(...)
             return ElementFunction(...)
         end
     end
 
     local function MakeElement(ElementName, ...)
-        local NewElement = OrionLib.Elements[ElementName](...)
+        local NewElement = Library.Elements[ElementName](...)
         return NewElement
     end
 
@@ -1089,11 +1087,11 @@ do
     end
 
     local function AddThemeObject(Object, Type)
-        if not OrionLib.ThemeObjects[Type] then
-            OrionLib.ThemeObjects[Type] = {}
+        if not Library.ThemeObjects[Type] then
+            Library.ThemeObjects[Type] = {}
         end    
-        table.insert(OrionLib.ThemeObjects[Type], Object)
-        Object[ReturnProperty(Object)] = OrionLib.Themes[OrionLib.SelectedTheme][Type]
+        table.insert(Library.ThemeObjects[Type], Object)
+        Object[ReturnProperty(Object)] = Library.Themes[Library.SelectedTheme][Type]
         return Object
     end    
 
@@ -1249,7 +1247,7 @@ do
         Parent = Orion
     })
 
-    function OrionLib:MakeNotification(NotificationConfig)
+    function Library:MakeNotification(NotificationConfig)
         spawn(function()
             NotificationConfig.Name = NotificationConfig.Name or "Notification"
             NotificationConfig.Content = NotificationConfig.Content or "Test"
@@ -4788,4 +4786,4 @@ function Library:CreateWindow(HubName, GameName, IntroText, IntroIcon, ImprovePe
     return Tabs
 end
 
-return Library,OrionLib
+return Library
