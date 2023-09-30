@@ -713,7 +713,7 @@ do
 		local this = {}
 		this.title = data.title or "nil text"
 
-		local button = utility:Create("ImageButton", {
+		local label = utility:Create("ImageButton", {
 			Name = "Button",
 			Parent = self.container,
 			BackgroundTransparency = 1,
@@ -737,6 +737,9 @@ do
 				TextTransparency = 0.10000000149012
 			})
 		})
+
+        local module = {Instance = label, Options = this}
+		self.modules[#self.modules + 1] = module
 	end
 
 	function section:addButton(data)
