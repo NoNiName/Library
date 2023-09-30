@@ -2622,6 +2622,13 @@ do
 				})
 			})
 
+            table.foreach(options_Value,function(i,v)
+                if v == tostring(value) then
+                    table.remove(options_Value, i)
+                    utility:Tween(button.TextLabel, {TextColor3 = themes.TextColor}, 0.3)
+                end
+            end)
+
 			button.MouseButton1Click:Connect(function()
                 if table.find(options_Value,tostring(value)) == nil then
 					table.insert(options_Value,value)
