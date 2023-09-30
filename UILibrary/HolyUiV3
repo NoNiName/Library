@@ -2624,8 +2624,7 @@ do
 
             table.foreach(options_Value,function(i,v)
                 if v == tostring(value) then
-                    table.remove(options_Value, i)
-                    utility:Tween(button.TextLabel, {TextColor3 = themes.TextColor}, 0.3)
+					utility:Tween(button.TextLabel, {TextColor3 = Color3.fromRGB(56, 129, 245)}, 0.3)
                 end
             end)
 
