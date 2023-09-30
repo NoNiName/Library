@@ -740,6 +740,12 @@ do
 
         local module = {Instance = label, Options = this}
 		self.modules[#self.modules + 1] = module
+
+		function this:ChangeText(newtext)
+			label.Title.Text = newtext
+		end
+
+		return module
 	end
 
 	function section:addButton(data)
@@ -800,15 +806,8 @@ do
 			debounce = false
 		end)
 
-		function this:Update(dataOptions)
-            -- // Overwriting settings
-            for i,v in pairs(dataOptions) do
-                if (module.Options[i] and i ~= "Update") then
-                    module.Options[i] = tostring(v)
-                end
-            end
-
-			return section:updateButton(module)
+		function this:ChangeText(newtext)
+			button.Title.Text = newtext
 		end
 
 		return module
@@ -873,27 +872,51 @@ do
 		})
 		local module = {Instance = toggle, Options = this}
 		self.modules[#self.modules + 1] = module
-		--self:Resize()
 
-		self:updateToggle(module)
+		local position = {
+			In = UDim2.new(0, 2, 0.5, -6),
+			Out = UDim2.new(0, 20, 0.5, -6)
+		}
 
-		function this:Update(dataOptions)
-			-- // Overwriting settings
-            for i,v in pairs(dataOptions) do
-                if (module.Options[i] and i ~= "Update") then
-                    module.Options[i] = tostring(v)
-                end
-			end
+		local frame = toggle.Button.Frame
+		local selectedPosition = this.toggled and "Out" or "In"
 
-			return section:updateToggle(module)
+		function UpdateToggle(Value)
+			local selectedPosition = Value and "Out" or "In"
+
+			utility:Tween(frame, {
+				Size = UDim2.new(1, -22, 1, -9),
+				Position = position[selectedPosition] + UDim2.new(0, 0, 0, 2.5)
+			}, 0.2)
+	
+			wait(0.1)
+			utility:Tween(frame, {
+				Size = UDim2.new(1, -22, 1, -4),
+				Position = position[selectedPosition]
+			}, 0.1)
 		end
 
+		UpdateToggle(this.toggled)
+		this.callback(this.toggled)
+	
 		toggle.MouseButton1Click:Connect(function()
 			this.toggled = not this.toggled
-			self:updateToggle(module)
+
+			UpdateToggle(this.toggled)
 
 			this.callback(this.toggled)
 		end)
+
+		function this:ChangeText(newtext)
+			toggle.Title.Text = newtext
+		end
+		function this:ChangeToggle(Mode)
+			this.toggled = Mode
+
+			UpdateToggle(this.toggled)
+
+			this.callback(this.toggled)
+		end
 
 		return module
 	end
@@ -1000,15 +1023,12 @@ do
 			this.callback(tInput.Text, true)
 		end)
 
-		function this:Update(dataOptions)
-			-- // Overwriting settings
-            for i,v in pairs(dataOptions) do
-                if (module.Options[i] and i ~= "Update") then
-                    module.Options[i] = tostring(v)
-                end
-			end
+		function this:ChangeText(newtext)
+			textbox.Title.Text = newtext
+		end
 
-			return section:updateTextbox(module)
+		function this:ChangeTextbox(value)
+			this.callback(value)
 		end
 
 		return module
@@ -1079,6 +1099,31 @@ do
 		local text = keybind.Button.Text
 		local button = keybind.Button
 
+		function updateKeybind(module)
+			local keybind = module.Instance
+			local options = module.Options
+	
+			if (typeof(options.key) == "Instance" and options.key:IsA("InputObject")) then
+				options.key = options.key.KeyCode
+			end
+	
+			local text = keybind.Button.Text
+			local bind = self.binds[keybind]
+	
+			keybind.Title.Text = module.Options.title
+	
+			if bind.connection then
+				bind.connection = bind.connection:UnBind()
+			end
+	
+			if options.key ~= Enum.KeyCode.Unknown then
+				self.binds[keybind].connection = utility:BindToKey(options.key, bind.callback, options.gameProcessedEvent)
+				text.Text = input:GetStringForKeyCode(options.key)
+			else
+				text.Text = "Unknown"
+			end
+		end
+
 		local animate = function()
 			if button.ImageTransparency == 0 then
 				utility:Pop(button, 10)
@@ -1090,7 +1135,7 @@ do
 			this.callback()
 		end}
 
-		self:updateKeybind(module)
+		updateKeybind(module)
 
 		keybind.MouseButton1Click:Connect(function()
 
@@ -1098,7 +1143,7 @@ do
 
 			if self.binds[keybind].connection then -- unbind
 			    this.key = Enum.KeyCode.Unknown
-				return self:updateKeybind(module)
+				return updateKeybind(module)
 			end
 
 			if text.Text == "Unknown" then -- new bind
@@ -1106,22 +1151,22 @@ do
 
 				this.key = utility:KeyPressed().KeyCode
 
-				self:updateKeybind(module)
+				updateKeybind(module)
 				animate()
 
 				this.changedCallback(this.key)
 			end
 		end)
 
-		function this:Update(dataOptions)
-			-- // Overwriting settings
-            for i,v in pairs(dataOptions) do
-                if (module.Options[i] and i ~= "Update") then
-                    module.Options[i] = tostring(v)
-                end
-			end
+		function this:ChangeText(newtext)
+			keybind.Title.Text = newtext
+		end
 
-			return section:updateKeybind(module)
+		function this:ChangeKeybind(value)
+			this.key = value or Enum.KeyCode.Unknown
+
+			updateKeybind(module)
+			animate()
 		end
 
 		return module
@@ -1471,7 +1516,44 @@ do
 			draggingColor, draggingCanvas = false, false
 		end)
 
-		self:updateColorPicker(module)
+		function updateColorPicker(module)
+			local colorpicker = module.Instance
+			local options = module.Options
+	
+			local picker = self.colorpickers[colorpicker]
+			local tab = picker.tab
+	
+			colorpicker.Title.Text = options.title
+			tab.Title.Text = options.title
+	
+			local color3
+			local hue, sat, brightness
+	
+			if (typeof(options.default) == "table") then
+				hue, sat, brightness = unpack(options.default)
+				color3 = Color3.fromHSV(hue, sat, brightness)
+			else
+				color3 = options.default
+				hue, sat, brightness = Color3.toHSV(color3)
+			end
+	
+			utility:Tween(colorpicker.Button, {ImageColor3 = color3}, 0.5)
+			utility:Tween(tab.Container.Color.Select, {Position = UDim2.new(hue, 0, 0, 0)}, 0.1)
+	
+			utility:Tween(tab.Container.Canvas, {ImageColor3 = Color3.fromHSV(hue, 1, 1)}, 0.5)
+			utility:Tween(tab.Container.Canvas.Cursor, {Position = UDim2.new(sat, 0, 1 - brightness)}, 0.5)
+	
+			for i, container in pairs(tab.Container.Inputs:GetChildren()) do
+				if container:IsA("ImageLabel") then
+					local value = math.clamp(color3[container.Name], 0, 1) * 255
+	
+					container.Textbox.Text = math.floor(value)
+					--callback(container.Name:lower(), value)
+				end
+			end
+		end
+
+		updateColorPicker(module)
 
 		hue, sat, brightness = Color3.toHSV(this.default)
 		this.default = Color3.fromHSV(hue, sat, brightness)
@@ -1508,7 +1590,7 @@ do
 						this.default = Color3.fromRGB(rgb.r, rgb.g, rgb.b)
 						hue, sat, brightness = Color3.toHSV(this.color3)
 
-						self:updateColorPicker(module)
+						updateColorPicker(module)
 						this.callback(this.color3)
 					end
 				end)
@@ -1532,7 +1614,7 @@ do
 				end
 
 				this.default = Color3.fromHSV(hue, sat, brightness)
-				self:updateColorPicker(module)
+				updateColorPicker(module)
 				utility:Tween(canvas.Cursor, {Position = UDim2.new(sat, 0, 1 - brightness, 0)}, 0.1) -- overwrite
 
 				this.callback(this.color3)
@@ -1554,7 +1636,7 @@ do
 
 				local x = hue -- hue is updated
 				this.default = Color3.fromHSV(hue, sat, brightness)
-				self:updateColorPicker(module)
+				updateColorPicker(module)
 				utility:Tween(tab.Container.Color.Select, {Position = UDim2.new(x, 0, 0, 0)}, 0.1) -- overwrite
 
 				this.callback(this.color3)
@@ -1642,21 +1724,9 @@ do
 
 		tab.Close.MouseButton1Click:Connect(function()
 			this.default = lastColor
-			self:updateColorPicker(module)
+			updateColorPicker(module)
 			animate()
 		end)
-
-		function this:Update(dataOptions)
-			-- // Overwriting settings
-            for i,v in pairs(dataOptions) do
-                if (module.Options[i] and i ~= "Update") then
-                    module.Options[i] = tostring(v)
-                end
-			end
-
-			return section:updateColorPicker(module)
-		end
-
 		return module
 	end
 
@@ -1769,7 +1839,41 @@ do
 
 		local dragging
 
-		self:updateSlider(module)
+		function updateSlider(module)
+			local slider = module.Instance
+			local options = module.Options
+	
+			local bar = slider.Slider.Bar
+			local percent = (mouse.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
+	
+			if options.value then
+				percent = (options.value - options.min) / (options.max - options.min)
+			end
+	
+			local function round(what, precision)
+				if (precision == 0) then
+					return math.floor(what)
+				elseif (precision == -1) then
+					return what
+				else
+					return math.floor(what * math.pow(10, precision) + 0.5) / math.pow(10, precision)
+				end
+			end
+	
+			percent = math.clamp(percent, 0, 1)
+			options.value = options.value or round(options.min + (options.max - options.min) * percent, options.precision)
+	
+			slider.TextBox.Text = options.value
+			utility:Tween(bar.Fill, {Size = UDim2.new(percent, 0, 1, 0)}, 0.1)
+	
+			if options.value ~= options.lvalue and slider.ImageTransparency == 0 then
+				utility:Pop(slider, 10)
+			end
+	
+			return options.value
+		end
+
+		updateSlider(module)
 
 		utility:DraggingEnded(function()
 			dragging = false
@@ -1782,7 +1886,7 @@ do
 				utility:Tween(circle, {ImageTransparency = 0}, 0.1)
 
 				this.value = nil
-				this.value = self:updateSlider(module)
+				this.value = updateSlider(module)
 				this.callback(this.value)
 
 				utility:Wait()
@@ -1795,7 +1899,7 @@ do
 		textbox.FocusLost:Connect(function()
 			if not tonumber(textbox.Text) then
 				this.value = nil
-				this.value = self:updateSlider(module)
+				this.value = updateSlider(module)
 				this.callback(this.value)
 			end
 		end)
@@ -1807,29 +1911,16 @@ do
 				textbox.Text = text:sub(1, #text - 1)
 			elseif not allowed[text] then
 				this.value = nil
-				this.value = self:updateSlider(module)
+				this.value = updateSlider(module)
 				this.callback(this.value)
 			end
 		end)
-
-		function this:Update(dataOptions)
-			-- // Overwriting settings
-            for i,v in pairs(dataOptions) do
-                if (module.Options[i] and i ~= "Update") then
-                    module.Options[i] = tostring(v)
-                end
-			end
-
-			return section:updateSlider(module)
-		end
-
 		return module
 	end
 
 	function section:addDropdown(data)
 		local this = {}
 		this.list = data.list or {}
-		this.backuplist = this.list
         this.Basetitle = data.title or "nil title"
 		this.title = data.title or "nil title"
 		this.default = data.default
@@ -1936,6 +2027,89 @@ do
 		self.modules[#self.modules + 1] = module
 		--self:Resize()
 
+		function updateDropdown(module, aOptions)
+			local dropdown = module.Instance
+			local options = module.Options
+			aOptions = aOptions or {}
+
+			local entries = 0
+
+			utility:Pop(dropdown.Search, 10)
+
+			for i, button in pairs(dropdown.List.Frame:GetChildren()) do
+				if button:IsA("ImageButton") then
+					button:Destroy()
+				end
+			end
+
+			local list = aOptions.update or options.list
+
+			for i, value in pairs(list) do
+				local button = utility:Create("ImageButton", {
+					Parent = dropdown.List.Frame,
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					Size = UDim2.new(1, 0, 0, 30),
+					ZIndex = 2,
+					Image = "rbxassetid://5028857472",
+					ImageColor3 = themes.DarkContrast,
+					ScaleType = Enum.ScaleType.Slice,
+					SliceCenter = Rect.new(2, 2, 298, 298)
+				}, {
+					utility:Create("TextLabel", {
+						BackgroundTransparency = 1,
+						Position = UDim2.new(0, 10, 0, 0),
+						Size = UDim2.new(1, -10, 1, 0),
+						ZIndex = 3,
+						Font = Enum.Font.Gotham,
+						Text = value,
+						TextColor3 = themes.TextColor,
+						TextSize = 12,
+						TextXAlignment = "Left",
+						TextTransparency = 0.10000000149012
+					})
+				})
+
+				if value == tostring(options.default) then
+					utility:Tween(button.TextLabel, {TextColor3 = Color3.fromRGB(56, 129, 245)}, 0.3)
+				end
+
+				button.MouseButton1Click:Connect(function()
+					options.callback(value)
+
+					dropdown.Search.TextLabel.Text = options.Basetitle .. " : " .. value
+					dropdown.Search.TextLabel.Visible = true
+					dropdown.Search.TextBox.Visible = false
+					options.default = value
+					updateDropdown(module, {update = value and {} or false})
+				end)
+
+				entries = entries + 1
+			end
+
+			local frame = dropdown.List.Frame
+
+			if (not aOptions.noOpen) then
+				utility:Tween(dropdown, {Size = UDim2.new(1, 0, 0, (entries == 0 and 30) or math.clamp(entries, 0, 3) * 34 + 38)}, 0.3)
+				utility:Tween(dropdown.Search.Button, {Rotation = not aOptions.update and 180 or 0}, 0.3)
+			end
+
+			if entries > 3 then
+
+				for i, button in pairs(dropdown.List.Frame:GetChildren()) do
+					if button:IsA("ImageButton") then
+						button.Size = UDim2.new(1, -6, 0, 30)
+					end
+				end
+
+				frame.CanvasSize = UDim2.new(0, 0, 0, (entries * 34) - 4)
+				frame.ScrollBarImageTransparency = 0
+			else
+				frame.CanvasSize = UDim2.new(0, 0, 0, 0)
+				frame.ScrollBarImageTransparency = 1
+			end
+		end
+
 		local search = dropdown.Search
 		local focused
 
@@ -1951,18 +2125,18 @@ do
                 dropdown.Search.TextBox.Visible = true
                 dropdown.Search.TextBox.Text = ""
                 dropdown.Search.TextBox.PlaceholderText = "Search .."
-				self:updateDropdown(module)
+				updateDropdown(module)
 			else
                 dropdown.Search.TextLabel.Visible = true
                 dropdown.Search.TextBox.Visible = false
-				self:updateDropdown(module, {update = {}})
+				updateDropdown(module, {update = {}})
 			end
 		end)
 
 		search.TextBox.Focused:Connect(function()
 			if search.Button.Rotation == 0 then
 				this.title = nil
-				self:updateDropdown(module, {update = {}})
+				updateDropdown(module, {update = {}})
 			end
 
 			focused = true
@@ -1978,7 +2152,7 @@ do
 				local list = #_list ~= 0 and _list
 
 				this.title = nil
-				self:updateDropdown(module, {update = list})
+				updateDropdown(module, {update = list})
 			end
 		end)
 
@@ -1986,29 +2160,21 @@ do
 			self:Resize()
 		end)
 
-		function this:Update(dataOptions)
-		    -- // Overwriting settings
-            for i,v in pairs(dataOptions) do
-				if (i ~= "Update" and module.Options[i]) then
-					-- // Making everything in the list a string
-					if (i == "list") then
-						for a, x in pairs(v) do
-							v[a] = tostring(x)
-						end
-					end
-
-					-- // Setting it
-                    module.Options[i] = (i == "list" and v or tostring(v))
-				end
-            end
-
-			return section:updateDropdown(module, {noOpen = dataOptions["list"]})
-		end
-
 		if (this.default) then
             this.callback(this.default)
 
             dropdown.Search.TextLabel.Text = this.Basetitle .. " : " .. this.default
+		end
+
+		function this:Refresh(NewData,Newdefault)
+			this.default = Newdefault or this.default
+			dropdown.Search.TextLabel.Text = this.Basetitle .. " : " .. this.default
+			this.list = {}
+			for i,v in pairs(NewData) do
+				this.list[i] = tostring(v)
+			end
+
+			this.callback(this.default)
 		end
 
 		return module
@@ -2127,6 +2293,95 @@ do
 		self.modules[#self.modules + 1] = module
 		--self:Resize()
 
+		function updateMulitDropdown(module, aOptions)
+			local dropdown = module.Instance
+			local options = module.Options
+			options_Value = options.Options_Mulit
+	
+			aOptions = aOptions or {}
+	
+			local entries = 0
+	
+			utility:Pop(dropdown.Search, 10)
+	
+			local list = aOptions.update or options.list
+	
+			for i, value in pairs(list) do
+				local button = utility:Create("ImageButton", {
+					Parent = dropdown.List.Frame,
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					Size = UDim2.new(1, 0, 0, 30),
+					ZIndex = 2,
+					Image = "rbxassetid://5028857472",
+					ImageColor3 = themes.DarkContrast,
+					ScaleType = Enum.ScaleType.Slice,
+					SliceCenter = Rect.new(2, 2, 298, 298)
+				}, {
+					utility:Create("TextLabel", {
+						BackgroundTransparency = 1,
+						Position = UDim2.new(0, 10, 0, 0),
+						Size = UDim2.new(1, -10, 1, 0),
+						ZIndex = 3,
+						Font = Enum.Font.Gotham,
+						Text = value,
+						TextColor3 = themes.TextColor,
+						TextSize = 12,
+						TextXAlignment = "Left",
+						TextTransparency = 0.10000000149012
+					})
+				})
+	
+				table.foreach(options_Value,function(i,v)
+					if v == tostring(value) then
+						utility:Tween(button.TextLabel, {TextColor3 = Color3.fromRGB(56, 129, 245)}, 0.3)
+					end
+				end)
+	
+				button.MouseButton1Click:Connect(function()
+					if table.find(options_Value,tostring(value)) == nil then
+						table.insert(options_Value,value)
+						utility:Tween(button.TextLabel, {TextColor3 = Color3.fromRGB(56, 129, 245)}, 0.3)
+					else
+						table.foreach(options_Value,function(i,v)
+							if v == tostring(value) then
+								table.remove(options_Value, i)
+								utility:Tween(button.TextLabel, {TextColor3 = themes.TextColor}, 0.3)
+							end
+						end)
+					end;
+	
+					options.callback(options_Value)
+					dropdown.Search.TextLabel.Text = options.Basetitle .. " : " .. table.concat(options_Value, ", ")
+					dropdown.Search.TextBox.PlaceholderText = "Search .. ( ".. table.concat(options_Value, ", ") .." )"
+				end)
+	
+				entries = entries + 1
+			end
+	
+			local frame = dropdown.List.Frame
+	
+			if (not aOptions.noOpen) then
+				utility:Tween(dropdown, {Size = UDim2.new(1, 0, 0, (entries == 0 and 30) or math.clamp(entries, 0, 3) * 34 + 38)}, 0.3)
+				utility:Tween(dropdown.Search.Button, {Rotation = not aOptions.update and 180 or 0}, 0.3)
+			end
+			
+			if entries > 3 then
+				for i, button in pairs(dropdown.List.Frame:GetChildren()) do
+					if button:IsA("ImageButton") then
+						button.Size = UDim2.new(1, -6, 0, 30)
+					end
+				end
+	
+				frame.CanvasSize = UDim2.new(0, 0, 0, (entries * 34) - 4)
+				frame.ScrollBarImageTransparency = 0
+			else
+				frame.CanvasSize = UDim2.new(0, 0, 0, 0)
+				frame.ScrollBarImageTransparency = 1
+			end
+	
+		end
+
 		local search = dropdown.Search
 		local focused
 
@@ -2149,7 +2404,7 @@ do
 					end
 				end		
 
-				self:updateMulitDropdown(module)
+				updateMulitDropdown(module)
 			else
                 dropdown.Search.TextLabel.Visible = true
                 dropdown.Search.TextBox.Visible = false
@@ -2160,14 +2415,14 @@ do
 					end
 				end		
 
-				self:updateMulitDropdown(module, {update = {}})
+				updateMulitDropdown(module, {update = {}})
 			end
 		end)
 
 		search.TextBox.Focused:Connect(function()
 			if search.Button.Rotation == 0 then
 				this.title = nil
-				self:updateMulitDropdown(module, {update = {}})
+				updateMulitDropdown(module, {update = {}})
 			end
 
 			focused = true
@@ -2183,7 +2438,7 @@ do
 				local list = #_list ~= 0 and _list
 
 				this.title = nil
-				self:updateMulitDropdown(module, {update = list})
+				updateMulitDropdown(module, {update = list})
 			end
 		end)
 
@@ -2191,29 +2446,22 @@ do
 			self:Resize()
 		end)
 
-		function this:Update(dataOptions)
-		    -- // Overwriting settings
-            for i,v in pairs(dataOptions) do
-				if (i ~= "Update" and module.Options[i]) then
-					-- // Making everything in the list a string
-					if (i == "list") then
-						for a, x in pairs(v) do
-							v[a] = tostring(x)
-						end
-					end
-
-					-- // Setting it
-                    module.Options[i] = (i == "list" and v or tostring(v))
-				end
-            end
-
-			return section:updateMulitDropdown(module, {noOpen = dataOptions["list"]})
-		end
-
 		if (this.default) then
             this.callback(this.default)
 
             dropdown.Search.TextLabel.Text = this.Basetitle .. " : " .. table.concat(this.default, ", ")
+		end
+
+		function this:Refresh(NewData,Newdefault)
+			this.default = Newdefault or this.default
+			this.Options_Mulit = Newdefault or this.default
+			dropdown.Search.TextLabel.Text = this.Basetitle .. " : " .. table.concat(this.default, ", ")
+			this.list = {}
+			for i,v in pairs(NewData) do
+				this.list[i] = tostring(v)
+			end
+
+			this.callback(this.default)
 		end
 
 		return module
@@ -2368,308 +2616,6 @@ do
 		end
 
 		error("No module found under "..tostring(info.Instance))
-	end
-
-	-- updates
-
-	function section:updateButton(module)
-		module.Instance.Title.Text = module.Options.title
-	end
-
-	function section:updateToggle(module)
-		local toggle = module.Instance
-		local options = module.Options
-
-		local position = {
-			In = UDim2.new(0, 2, 0.5, -6),
-			Out = UDim2.new(0, 20, 0.5, -6)
-		}
-
-		local frame = toggle.Button.Frame
-		local selectedPosition = options.toggled and "Out" or "In"
-
-		toggle.Title.Text = module.Options.title
-
-		utility:Tween(frame, {
-			Size = UDim2.new(1, -22, 1, -9),
-			Position = position[selectedPosition] + UDim2.new(0, 0, 0, 2.5)
-		}, 0.2)
-
-		wait(0.1)
-		utility:Tween(frame, {
-			Size = UDim2.new(1, -22, 1, -4),
-			Position = position[selectedPosition]
-		}, 0.1)
-	end
-
-	function section:updateTextbox(module)
-		module.Instance.Title.Text = module.Options.title
-		module.Instance.Button.Textbox.Text = module.Options.default
-	end
-
-	function section:updateKeybind(module)
-		local keybind = module.Instance
-		local options = module.Options
-
-		if (typeof(options.key) == "Instance" and options.key:IsA("InputObject")) then
-			options.key = options.key.KeyCode
-		end
-
-		local text = keybind.Button.Text
-		local bind = self.binds[keybind]
-
-		keybind.Title.Text = module.Options.title
-
-		if bind.connection then
-			bind.connection = bind.connection:UnBind()
-		end
-
-		if options.key ~= Enum.KeyCode.Unknown then
-			self.binds[keybind].connection = utility:BindToKey(options.key, bind.callback, options.gameProcessedEvent)
-			text.Text = input:GetStringForKeyCode(options.key)
-		else
-			text.Text = "Unknown"
-		end
-	end
-
-	function section:updateColorPicker(module)
-		local colorpicker = module.Instance
-		local options = module.Options
-
-		local picker = self.colorpickers[colorpicker]
-		local tab = picker.tab
-
-		colorpicker.Title.Text = options.title
-		tab.Title.Text = options.title
-
-		local color3
-		local hue, sat, brightness
-
-		if (typeof(options.default) == "table") then
-			hue, sat, brightness = unpack(options.default)
-			color3 = Color3.fromHSV(hue, sat, brightness)
-		else
-			color3 = options.default
-			hue, sat, brightness = Color3.toHSV(color3)
-		end
-
-		utility:Tween(colorpicker.Button, {ImageColor3 = color3}, 0.5)
-		utility:Tween(tab.Container.Color.Select, {Position = UDim2.new(hue, 0, 0, 0)}, 0.1)
-
-		utility:Tween(tab.Container.Canvas, {ImageColor3 = Color3.fromHSV(hue, 1, 1)}, 0.5)
-		utility:Tween(tab.Container.Canvas.Cursor, {Position = UDim2.new(sat, 0, 1 - brightness)}, 0.5)
-
-		for i, container in pairs(tab.Container.Inputs:GetChildren()) do
-			if container:IsA("ImageLabel") then
-				local value = math.clamp(color3[container.Name], 0, 1) * 255
-
-				container.Textbox.Text = math.floor(value)
-				--callback(container.Name:lower(), value)
-			end
-		end
-	end
-
-	function section:updateSlider(module)
-		local slider = module.Instance
-		local options = module.Options
-
-		slider.Title.Text = options.title
-
-		local bar = slider.Slider.Bar
-		local percent = (mouse.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
-
-		if options.value then
-			percent = (options.value - options.min) / (options.max - options.min)
-		end
-
-		local function round(what, precision)
-			if (precision == 0) then
-				return math.floor(what)
-			elseif (precision == -1) then
-				return what
-			else
-				return math.floor(what * math.pow(10, precision) + 0.5) / math.pow(10, precision)
-			end
-		end
-
-		percent = math.clamp(percent, 0, 1)
-		options.value = options.value or round(options.min + (options.max - options.min) * percent, options.precision)
-
-		slider.TextBox.Text = options.value
-		utility:Tween(bar.Fill, {Size = UDim2.new(percent, 0, 1, 0)}, 0.1)
-
-		if options.value ~= options.lvalue and slider.ImageTransparency == 0 then
-			utility:Pop(slider, 10)
-		end
-
-		return options.value
-	end
-
-	function section:updateDropdown(module, aOptions)
-		local dropdown = module.Instance
-		local options = module.Options
-		aOptions = aOptions or {}
-
-		local entries = 0
-
-		utility:Pop(dropdown.Search, 10)
-
-		for i, button in pairs(dropdown.List.Frame:GetChildren()) do
-			if button:IsA("ImageButton") then
-				button:Destroy()
-			end
-		end
-
-		local list = aOptions.update or options.list
-
-		for i, value in pairs(list) do
-			local button = utility:Create("ImageButton", {
-				Parent = dropdown.List.Frame,
-				BackgroundTransparency = 1,
-				BorderSizePixel = 0,
-				Size = UDim2.new(1, 0, 0, 30),
-				ZIndex = 2,
-				Image = "rbxassetid://5028857472",
-				ImageColor3 = themes.DarkContrast,
-				ScaleType = Enum.ScaleType.Slice,
-				SliceCenter = Rect.new(2, 2, 298, 298)
-			}, {
-				utility:Create("TextLabel", {
-					BackgroundTransparency = 1,
-					Position = UDim2.new(0, 10, 0, 0),
-					Size = UDim2.new(1, -10, 1, 0),
-					ZIndex = 3,
-					Font = Enum.Font.Gotham,
-					Text = value,
-					TextColor3 = themes.TextColor,
-					TextSize = 12,
-					TextXAlignment = "Left",
-					TextTransparency = 0.10000000149012
-				})
-			})
-
-			button.MouseButton1Click:Connect(function()
-				options.callback(value)
-
-                dropdown.Search.TextLabel.Text = options.Basetitle .. " : " .. value
-                dropdown.Search.TextLabel.Visible = true
-                dropdown.Search.TextBox.Visible = false
-				self:updateDropdown(module, {update = value and {} or false})
-			end)
-
-			entries = entries + 1
-		end
-
-		local frame = dropdown.List.Frame
-
-		if (not aOptions.noOpen) then
-			utility:Tween(dropdown, {Size = UDim2.new(1, 0, 0, (entries == 0 and 30) or math.clamp(entries, 0, 3) * 34 + 38)}, 0.3)
-			utility:Tween(dropdown.Search.Button, {Rotation = not aOptions.update and 180 or 0}, 0.3)
-		end
-
-		if entries > 3 then
-
-			for i, button in pairs(dropdown.List.Frame:GetChildren()) do
-				if button:IsA("ImageButton") then
-					button.Size = UDim2.new(1, -6, 0, 30)
-				end
-			end
-
-			frame.CanvasSize = UDim2.new(0, 0, 0, (entries * 34) - 4)
-			frame.ScrollBarImageTransparency = 0
-		else
-			frame.CanvasSize = UDim2.new(0, 0, 0, 0)
-			frame.ScrollBarImageTransparency = 1
-		end
-	end
-
-    function section:updateMulitDropdown(module, aOptions)
-		local dropdown = module.Instance
-		local options = module.Options
-        options_Value = options.Options_Mulit
-
-		aOptions = aOptions or {}
-
-		local entries = 0
-
-		utility:Pop(dropdown.Search, 10)
-
-		local list = aOptions.update or options.list
-
-		for i, value in pairs(list) do
-			local button = utility:Create("ImageButton", {
-				Parent = dropdown.List.Frame,
-				BackgroundTransparency = 1,
-				BorderSizePixel = 0,
-				Size = UDim2.new(1, 0, 0, 30),
-				ZIndex = 2,
-				Image = "rbxassetid://5028857472",
-				ImageColor3 = themes.DarkContrast,
-				ScaleType = Enum.ScaleType.Slice,
-				SliceCenter = Rect.new(2, 2, 298, 298)
-			}, {
-				utility:Create("TextLabel", {
-					BackgroundTransparency = 1,
-					Position = UDim2.new(0, 10, 0, 0),
-					Size = UDim2.new(1, -10, 1, 0),
-					ZIndex = 3,
-					Font = Enum.Font.Gotham,
-					Text = value,
-					TextColor3 = themes.TextColor,
-					TextSize = 12,
-					TextXAlignment = "Left",
-					TextTransparency = 0.10000000149012
-				})
-			})
-
-            table.foreach(options_Value,function(i,v)
-                if v == tostring(value) then
-					utility:Tween(button.TextLabel, {TextColor3 = Color3.fromRGB(56, 129, 245)}, 0.3)
-                end
-            end)
-
-			button.MouseButton1Click:Connect(function()
-                if table.find(options_Value,tostring(value)) == nil then
-					table.insert(options_Value,value)
-					utility:Tween(button.TextLabel, {TextColor3 = Color3.fromRGB(56, 129, 245)}, 0.3)
-                else
-					table.foreach(options_Value,function(i,v)
-						if v == tostring(value) then
-							table.remove(options_Value, i)
-							utility:Tween(button.TextLabel, {TextColor3 = themes.TextColor}, 0.3)
-						end
-					end)
-                end;
-
-				options.callback(options_Value)
-                dropdown.Search.TextLabel.Text = options.Basetitle .. " : " .. table.concat(options_Value, ", ")
-				dropdown.Search.TextBox.PlaceholderText = "Search .. ( ".. table.concat(options_Value, ", ") .." )"
-			end)
-
-			entries = entries + 1
-		end
-
-		local frame = dropdown.List.Frame
-
-		if (not aOptions.noOpen) then
-			utility:Tween(dropdown, {Size = UDim2.new(1, 0, 0, (entries == 0 and 30) or math.clamp(entries, 0, 3) * 34 + 38)}, 0.3)
-			utility:Tween(dropdown.Search.Button, {Rotation = not aOptions.update and 180 or 0}, 0.3)
-		end
-		
-		if entries > 3 then
-			for i, button in pairs(dropdown.List.Frame:GetChildren()) do
-				if button:IsA("ImageButton") then
-					button.Size = UDim2.new(1, -6, 0, 30)
-				end
-			end
-
-			frame.CanvasSize = UDim2.new(0, 0, 0, (entries * 34) - 4)
-			frame.ScrollBarImageTransparency = 0
-		else
-			frame.CanvasSize = UDim2.new(0, 0, 0, 0)
-			frame.ScrollBarImageTransparency = 1
-		end
-
 	end
 end
 
