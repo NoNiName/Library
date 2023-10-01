@@ -2370,7 +2370,7 @@ do
 				utility:Tween(dropdown.Search.Button, {Rotation = not aOptions.update and 180 or 0}, 0.3)
 			end
 			
-			if entries > 6 then
+			if entries > 3 then
 				for i, button in pairs(dropdown.List.Frame:GetChildren()) do
 					if button:IsA("ImageButton") then
 						button.Size = UDim2.new(1, -6, 0, 30)
