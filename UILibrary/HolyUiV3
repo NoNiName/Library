@@ -2456,6 +2456,7 @@ do
 			this.default = Newdefault or this.default
 			this.Options_Mulit = Newdefault or this.default
 			dropdown.Search.TextLabel.Text = this.Basetitle .. " : " .. table.concat(this.default, ", ")
+
 			this.list = {}
 			for i,v in pairs(NewData) do
 				this.list[i] = tostring(v)
