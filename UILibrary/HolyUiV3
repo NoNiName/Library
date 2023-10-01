@@ -1099,7 +1099,7 @@ do
 		local text = keybind.Button.Text
 		local button = keybind.Button
 
-		local function UpdateKeybind(module)
+		function UpdateKeybind(module)
 			local keybind = module.Instance
 			local options = module.Options
 	
@@ -1516,7 +1516,7 @@ do
 			draggingColor, draggingCanvas = false, false
 		end)
 
-		local function UpdateColorPicker(module)
+		function UpdateColorPicker(module)
 			local colorpicker = module.Instance
 			local options = module.Options
 	
@@ -1839,7 +1839,7 @@ do
 
 		local dragging
 
-		local function UpdateSlider(module)
+		function UpdateSlider(module)
 			local slider = module.Instance
 			local options = module.Options
 	
@@ -2027,7 +2027,7 @@ do
 		self.modules[#self.modules + 1] = module
 		--self:Resize()
 
-		local function UpdateDropdown(module, aOptions)
+		function UpdateDropdown(module, aOptions)
 			local dropdown = module.Instance
 			local options = module.Options
 			aOptions = aOptions or {}
@@ -2293,7 +2293,7 @@ do
 		self.modules[#self.modules + 1] = module
 		--self:Resize()
 
-		local function UpdateMulitDropdown(module, aOptions)
+		function UpdateMulitDropdown(module, aOptions)
 			local dropdown = module.Instance
 			local options = module.Options
 			options_Value = options.Options_Mulit
