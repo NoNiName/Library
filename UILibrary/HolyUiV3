@@ -148,7 +148,7 @@ do
 	function utility:KeyPressed() -- yield until next key is pressed
 		local key = input.InputBegan:Wait()
 
-		while key.UserInputType ~= Enum.UserInputType.Keyboard	 do
+		while key.UserInputType ~= Enum.UserInputType.Keyboard do
 			key = input.InputBegan:Wait()
 		end
 
@@ -2148,11 +2148,15 @@ do
 
 		search.TextBox:GetPropertyChangedSignal("Text"):Connect(function()
 			if focused then
-				local _list = utility:Sort(search.TextBox.Text, this.list)
-				local list = #_list ~= 0 and _list
-
-				this.title = nil
-				updateDropdown(module, {update = list})
+				for i, button in pairs(dropdown.List.Frame:GetChildren()) do
+					if button:IsA("ImageButton") then
+						if string.find(button.TextLabel.Text:lower(),search.TextBox.Text:lower()) then
+							button.Visible = true
+						else
+							button.Visible = false
+						end
+					end
+				end	
 			end
 		end)
 
@@ -2366,7 +2370,7 @@ do
 				utility:Tween(dropdown.Search.Button, {Rotation = not aOptions.update and 180 or 0}, 0.3)
 			end
 			
-			if entries > 3 then
+			if entries > 6 then
 				for i, button in pairs(dropdown.List.Frame:GetChildren()) do
 					if button:IsA("ImageButton") then
 						button.Size = UDim2.new(1, -6, 0, 30)
@@ -2434,11 +2438,15 @@ do
 
 		search.TextBox:GetPropertyChangedSignal("Text"):Connect(function()
 			if focused then
-				local _list = utility:Sort(search.TextBox.Text, this.list)
-				local list = #_list ~= 0 and _list
-
-				this.title = nil
-				updateMulitDropdown(module, {update = list})
+				for i, button in pairs(dropdown.List.Frame:GetChildren()) do
+					if button:IsA("ImageButton") then
+						if string.find(button.TextLabel.Text:lower(),search.TextBox.Text:lower()) then
+							button.Visible = true
+						else
+							button.Visible = false
+						end
+					end
+				end		
 			end
 		end)
 
