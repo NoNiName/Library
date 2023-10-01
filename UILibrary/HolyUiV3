@@ -881,7 +881,7 @@ do
 		local frame = toggle.Button.Frame
 		local selectedPosition = this.toggled and "Out" or "In"
 
-		function UpdateToggle(Value)
+		local function UpdateToggle(Value)
 			local selectedPosition = Value and "Out" or "In"
 
 			utility:Tween(frame, {
@@ -1099,7 +1099,7 @@ do
 		local text = keybind.Button.Text
 		local button = keybind.Button
 
-		function updateKeybind(module)
+		local function UpdateKeybind(module)
 			local keybind = module.Instance
 			local options = module.Options
 	
@@ -1516,7 +1516,7 @@ do
 			draggingColor, draggingCanvas = false, false
 		end)
 
-		function updateColorPicker(module)
+		local function UpdateColorPicker(module)
 			local colorpicker = module.Instance
 			local options = module.Options
 	
@@ -1839,7 +1839,7 @@ do
 
 		local dragging
 
-		function updateSlider(module)
+		local function UpdateSlider(module)
 			local slider = module.Instance
 			local options = module.Options
 	
@@ -2027,7 +2027,7 @@ do
 		self.modules[#self.modules + 1] = module
 		--self:Resize()
 
-		function updateDropdown(module, aOptions)
+		local function UpdateDropdown(module, aOptions)
 			local dropdown = module.Instance
 			local options = module.Options
 			aOptions = aOptions or {}
@@ -2293,7 +2293,7 @@ do
 		self.modules[#self.modules + 1] = module
 		--self:Resize()
 
-		function updateMulitDropdown(module, aOptions)
+		local function UpdateMulitDropdown(module, aOptions)
 			local dropdown = module.Instance
 			local options = module.Options
 			options_Value = options.Options_Mulit
