@@ -1118,7 +1118,7 @@ do
 	
 			if options.key ~= Enum.KeyCode.Unknown then
 				self.binds[keybind].connection = utility:BindToKey(options.key, bind.callback, options.gameProcessedEvent)
-				text.Text = input:GetStringForKeyCode(options.key)
+				text.Text = options.key.Name
 			else
 				text.Text = "Unknown"
 			end
@@ -1923,7 +1923,7 @@ do
 		this.list = data.list or {}
         this.Basetitle = data.title or "nil title"
 		this.title = data.title or "nil title"
-		this.default = data.default
+		this.default = data.default or "None"
 		this.callback = data.callback or function() end
 
 		local dropdown = utility:Create("Frame", {
